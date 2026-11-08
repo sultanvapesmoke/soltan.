@@ -10,7 +10,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
         body { font-family: 'Cairo', sans-serif; }
 
-        /* أزرار الواتساب العائمة (رقمين) */
+        /* أزرار الواتساب العائمة (رقمين للدعم والاستفسار فقط) */
         .whatsapp-btn {
             position: fixed;
             color: white;
@@ -89,10 +89,10 @@
             <!-- Products injected dynamically -->
         </div>
 
-        <!-- استمارة تأكيد الطلب وربط Google Sheets -->
-        <section class="max-w-xl mx-auto bg-gray-800 border border-amber-600/30 rounded-xl p-6 shadow-xl mb-6">
-            <h2 class="text-xl font-bold text-amber-500 text-center mb-2"><i class="fas fa-file-invoice ml-2"></i>تأكيد الطلب - متجر السلطان</h2>
-            <p class="text-xs text-gray-400 text-center mb-6">املأ بياناتك وسيتم تسجيل طلبك مباشرة لمراجعة وتحديد الهدية أو البونص المناسب.</p>
+        <!-- استمارة تأكيد الطلب (العميل يكتب بياناته فقط والمنتجات تتسجل في الخلفية للإكسل) -->
+        <section id="order-form-section" class="max-w-xl mx-auto bg-gray-800 border border-amber-600/30 rounded-xl p-6 shadow-xl mb-6">
+            <h2 class="text-xl font-bold text-amber-500 text-center mb-2"><i class="fas fa-file-invoice ml-2"></i>استمارة إتمام الطلب - متجر السلطان</h2>
+            <p class="text-xs text-gray-400 text-center mb-6">أدخل بيانات عنوانك لتأكيد الطلب (تم حفظ المنتجات التي اخترتها من السلة تلقائياً).</p>
             
             <form id="sultanOrderForm" class="space-y-4">
                 <div>
@@ -107,15 +107,13 @@
 
                 <div>
                     <label class="block text-xs font-bold text-gray-300 mb-1">العنوان بالتفصيل:</label>
-                    <textarea id="custAddress" rows="2" placeholder="المدينة، الشارع، رقم المبنى..." required class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500"></textarea>
+                    <textarea id="custAddress" rows="3" placeholder="المدينة، الشارع، رقم المبنى..." required class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500"></textarea>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-300 mb-1">المنتجات والكمية المطلوبة:</label>
-                    <textarea id="orderDetails" rows="3" placeholder="اكتب المشتريات والكميات هنا (لتحديد البونص يدوياً)" required class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500"></textarea>
-                </div>
+                <!-- تم إخفاء خانة المنتجات عن العميل تماماً، وسيتم إرسالها تلقائياً للشيت في الخلفية -->
+                <input type="hidden" id="orderDetails" value="">
 
-                <button type="submit" id="submitBtn" class="w-full bg-amber-600 hover:bg-amber-500 text-gray-900 font-bold py-3 rounded-lg text-sm transition">إرسال الطلب وحفظه في السجل</button>
+                <button type="submit" id="submitBtn" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg text-sm transition">تأكيد وإرسال الطلب للإدارة</button>
             </form>
 
             <p id="responseMsg" class="text-center mt-3 text-sm font-bold"></p>
@@ -123,13 +121,34 @@
 
     </main>
 
-    <!-- أزرار الواتساب العائمة (برقمين) -->
-    <a href="https://wa.me/201018104482?text=عندي استفسار بخصوص طلب في متجر السلطان" target="_blank" class="whatsapp-btn wa-primary">
+    <!-- أزرار الواتساب العائمة (للاستفسارات والمشاكل) -->
+    <a href="https://wa.me/201018104482?text=عندي استفسار بخصوص متجر السلطان" target="_blank" class="whatsapp-btn wa-primary">
         💬 واتساب (1)
     </a>
     <a href="https://wa.me/201020595089?text=عندي مشكلة أو استفسار بخصوص متجر السلطان" target="_blank" class="whatsapp-btn wa-secondary">
         📞 واتساب (2)
     </a>
+
+    <!-- Shopping Cart Modal -->
+    <div id="cart-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-xl w-full max-w-md overflow-hidden border border-amber-600/30">
+            <div class="bg-gray-900 px-6 py-4 flex justify-between items-center border-b border-gray-700">
+                <h3 class="text-amber-500 font-bold text-lg"><i class="fas fa-shopping-basket ml-2"></i>سلة المشتريات</h3>
+                <button onclick="toggleCart()" class="text-gray-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <div class="p-6">
+                <div id="cart-items" class="space-y-3 max-h-60 overflow-y-auto mb-4"></div>
+                <div class="border-t border-gray-700 pt-3 mb-4 flex justify-between text-base font-bold text-amber-400">
+                    <span>الإجمالي:</span>
+                    <span id="cart-total">0 ج.م</span>
+                </div>
+                <button onclick="proceedToCheckout()" class="w-full bg-amber-600 hover:bg-amber-500 text-gray-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition">
+                    <i class="fas fa-cash-register text-xl"></i>
+                    <span>انتقال لملء بيانات الشراء (استمارة الطلب)</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Admin Control Panel Modal -->
     <div id="admin-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
@@ -175,27 +194,6 @@
         </div>
     </div>
 
-    <!-- Shopping Cart Modal -->
-    <div id="cart-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-gray-800 rounded-xl w-full max-w-md overflow-hidden border border-amber-600/30">
-            <div class="bg-gray-900 px-6 py-4 flex justify-between items-center border-b border-gray-700">
-                <h3 class="text-amber-500 font-bold text-lg"><i class="fas fa-shopping-basket ml-2"></i>سلة المشتريات</h3>
-                <button onclick="toggleCart()" class="text-gray-400 hover:text-white text-xl">&times;</button>
-            </div>
-            <div class="p-6">
-                <div id="cart-items" class="space-y-3 max-h-60 overflow-y-auto mb-4"></div>
-                <div class="border-t border-gray-700 pt-3 mb-4 flex justify-between text-base font-bold text-amber-400">
-                    <span>الإجمالي:</span>
-                    <span id="cart-total">0 ج.م</span>
-                </div>
-                <button onclick="sendOrderWhatsApp()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition">
-                    <i class="fab fa-whatsapp text-xl"></i>
-                    <span>إرسال الطلب عبر الواتساب</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Footer -->
     <footer class="bg-gray-800 border-t border-gray-700 py-4 text-center text-xs text-gray-400">
         <p>جميع الحقوق محفوظة &copy; متجر السلطان | إدارة أحمد فتحي جدو</p>
@@ -217,7 +215,6 @@
         let cart = [];
         let adminPass = "123";
 
-        // Check if URL has #admin to open control panel automatically
         window.addEventListener('DOMContentLoaded', () => {
             if(window.location.hash === '#admin') {
                 document.getElementById('admin-modal').classList.remove('hidden');
@@ -302,12 +299,24 @@
             document.getElementById('cart-modal').classList.toggle('hidden');
         }
 
-        function sendOrderWhatsApp() {
+        // حفظ محتويات السلة في الحقل الخفي (Hidden) في الخلفية والانتقال للاستمارة
+        function proceedToCheckout() {
             if(cart.length === 0) return alert('السلة فارغة!');
-            let text = "أهلاً، طلب جديد من متجر السلطان:\n";
-            cart.forEach(i => text += `- ${i.name} (${i.qty} قطعة) بسعر ${i.price * i.qty} ج.م\n`);
-            text += `\n*الإجمالي:* ${cart.reduce((a, b) => a + (b.price * b.qty), 0)} ج.م`;
-            window.open(`https://wa.me/201018104482?text=${encodeURIComponent(text)}`, '_blank');
+            
+            let orderText = "";
+            let total = 0;
+            cart.forEach(i => {
+                orderText += `${i.name} (${i.qty} ق) - `;
+                total += i.price * i.qty;
+            });
+            orderText += `[الإجمالي: ${total} ج.م]`;
+
+            // حقن تفاصيل الطلب في الحقل الخفي تلقائياً
+            document.getElementById('orderDetails').value = orderText;
+
+            // غلق السلة والنزول للاستمارة
+            toggleCart();
+            document.getElementById('order-form-section').scrollIntoView({ behavior: 'smooth' });
         }
 
         // كود ربط الاستمارة بـ Google Sheets عبر SheetDB
@@ -327,7 +336,7 @@
                     "Name": document.getElementById('custName').value,
                     "Phone": document.getElementById('custPhone').value,
                     "Address": document.getElementById('custAddress').value,
-                    "OrderDetails": document.getElementById('orderDetails').value,
+                    "OrderDetails": document.getElementById('orderDetails').value, // المنتجات والكميات بتتبعت للشيت لوحدها في الخلفية
                     "Timestamp": new Date().toLocaleString('ar-EG')
                 }
             };
@@ -341,14 +350,16 @@
             })
             .then(response => response.json())
             .then(data => {
-                submitBtn.innerText = 'إرسال الطلب وحفظه في السجل';
+                submitBtn.innerText = 'تأكيد وإرسال الطلب للإدارة';
                 submitBtn.disabled = false;
                 responseMsg.style.color = '#34d399';
                 responseMsg.innerText = 'تم تسجيل طلبك بنجاح وسيتواصل معك الإدارة قريباً!';
                 document.getElementById('sultanOrderForm').reset();
+                cart = []; // تفريغ السلة بعد الطلب
+                updateCart();
             })
             .catch(error => {
-                submitBtn.innerText = 'إرسال الطلب وحفظه في السجل';
+                submitBtn.innerText = 'تأكيد وإرسال الطلب للإدارة';
                 submitBtn.disabled = false;
                 responseMsg.style.color = '#f87171';
                 responseMsg.innerText = 'حدث خطأ أثناء الإرسال، تأكد من ربط الـ SheetDB الصحيح.';
